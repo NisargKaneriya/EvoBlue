@@ -18,7 +18,8 @@ import {
   FaSeedling,
   FaGlobe,
   FaWhatsapp,
-  FaArrowUp
+  FaArrowUp,
+  FaHandPointDown
 } from 'react-icons/fa';
 import './App.css';
 import Home from './pages/Home';
@@ -72,6 +73,7 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
+  const [showChatPopup, setShowChatPopup] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -89,79 +91,39 @@ function App() {
     return () => window.removeEventListener('scroll', handleScrollBtn);
   }, []);
 
-  const waterTypes = [
-    {
-      icon: FaMountain,
-      title: "Spring Water",
-      description: "Naturally sourced from pristine mountain springs",
-      benefits: ["Natural minerals", "Pure taste", "No artificial additives"]
-    },
-    {
-      icon: FaWater,
-      title: "Purified Water",
-      description: "Advanced filtration removes impurities",
-      benefits: ["Clean taste", "Consistent quality", "Safe for everyone"]
-    },
-    {
-      icon: FaSnowflake,
-      title: "Mineral Water",
-      description: "Rich in essential minerals and electrolytes",
-      benefits: ["Enhanced hydration", "Natural minerals", "Better taste"]
-    },
-    {
-      icon: FaSeedling,
-      title: "Alkaline Water",
-      description: "Balanced pH for optimal body function",
-      benefits: ["pH balanced", "Better absorption", "Reduced acidity"]
-    }
-  ];
+  // Show 'Chat with us!' popup every time the website is loaded
+  useEffect(() => {
+    setShowChatPopup(true);
+    const timer = setTimeout(() => setShowChatPopup(false), 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
-  const environmentalFeatures = [
-    {
-      icon: FaRecycle,
-      title: "100% Recyclable",
-      description: "All our bottles are made from recyclable materials and can be fully recycled"
-    },
-    {
-      icon: FaLeaf,
-      title: "Reduced Carbon Footprint",
-      description: "Our manufacturing process reduces CO2 emissions by 30% compared to traditional methods"
-    },
-    {
-      icon: FaGlobe,
-      title: "Sustainable Sourcing",
-      description: "We source water responsibly and protect natural water sources"
-    },
-    {
-      icon: FaSeedling,
-      title: "Biodegradable Labels",
-      description: "Our labels are made from biodegradable materials that break down naturally"
+  // Inject Chatbase chatbox script once on mount
+  useEffect(() => {
+    if (!document.getElementById('IeUcf2UiRIfZo0FZ14NzY')) {
+      (function(){
+        if(!window.chatbase||window.chatbase("getState")!=="initialized"){
+          window.chatbase=(...args)=>{
+            if(!window.chatbase.q){window.chatbase.q=[]}
+            window.chatbase.q.push(args)
+          };
+          window.chatbase=new Proxy(window.chatbase,{
+            get(target,prop){
+              if(prop==="q"){return target.q}
+              return(...args)=>target(prop,...args)}
+          })
+        }
+        const onLoad=function(){
+          const script=document.createElement("script");
+          script.src="https://www.chatbase.co/embed.min.js";
+          script.id="IeUcf2UiRIfZo0FZ14NzY";
+          script.domain="www.chatbase.co";
+          document.body.appendChild(script)
+        };
+        if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}
+      })();
     }
-  ];
-
-  const testimonials = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      role: "Fitness Enthusiast",
-      content: "Evo Blue spring water is my go-to choice! The natural taste and mineral content make it perfect for my workouts.",
-      rating: 5
-    },
-    {
-      id: 2,
-      name: "Mike Chen",
-      role: "Office Manager",
-      content: "We stock Evo Blue purified water in our office. The bottles are perfect size and the water quality is consistently excellent!",
-      rating: 5
-    },
-    {
-      id: 3,
-      name: "Emily Davis",
-      role: "Health Coach",
-      content: "I recommend Evo Blue alkaline water to my clients. The pH balance and clean taste are exactly what they need.",
-      rating: 5
-    }
-  ];
+  }, []);
 
   return (
     <Router>
@@ -200,10 +162,15 @@ function App() {
             </div>
           </div>
         </nav>
-        {/* Floating WhatsApp Button */}
-        <a href="https://wa.me/919999999999" className="floating-whatsapp" target="_blank" rel="noopener noreferrer" title="Chat on WhatsApp">
-          <FaWhatsapp />
-        </a>
+        {/* Floating Chatbase Chatbox (positioned above WhatsApp) */}
+        {showChatPopup && (
+          <div className="chat-popup">
+            <span>Chat with us!</span>
+            <FaHandPointDown style={{marginLeft: 12, fontSize: '1.7rem', color: '#1e40af'}} />
+            <button className="close-chat-popup" onClick={() => setShowChatPopup(false)}>&times;</button>
+          </div>
+        )}
+        <div className="floating-chatbase" />
         {/* Scroll to Top Button */}
         {showScroll && (
           <button className="scroll-to-top" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} title="Scroll to top">
